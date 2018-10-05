@@ -19,7 +19,7 @@ exports.run = async (core, server, socket, payload) => {
   let newPayload = {
     cmd: 'chat',
     nick: socket.nick,
-    text: fakeHacker.phrase()
+    text: `${payload.pre !== null ? payload.pre.trim() + ' ' : ''}${fakeHacker.phrase()}`
   };
 
   if (socket.uType == 'admin') {
@@ -47,8 +47,12 @@ exports.statsCheck = (core, server, socket, payload) => {
   }
 
   if (payload.text.startsWith('/lolhacker')) {
+    let input = payload.text.split(' ');
+    input.splice(0, 1);
+
     this.run(core, server, socket, {
-      cmd: 'lolhacker'
+      cmd: 'lolhacker',
+      pre: input.length !== 0 ? input.join(' ') : null
     });
 
     return false;
@@ -62,6 +66,6 @@ exports.info = {
   name: 'lolhacker',
   description: 'Lololol be teh ultimate h4x0r man!!1!',
   usage: `
-    API: { cmd: 'lolhacker' }
-    Text: /lolhacker`
+    API: { cmd: 'lolhacker', pre: '<optional prepender string> }
+    Text: /lolhacker <optional prepender string>`
 };
