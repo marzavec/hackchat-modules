@@ -47,12 +47,12 @@ exports.statsCheck = (core, server, socket, payload) => {
   }
 
   if (payload.text.startsWith('/lolhacker')) {
-    let input = payload.text.split(' ');
+	let input = payload.text.split(' ');
     input.splice(0, 1);
 
     this.run(core, server, socket, {
       cmd: 'lolhacker',
-      pre: input.length !== 0 ? input.join(' ') : null
+	  pre: input.length !== 0 ? input.join(' ') : null
     });
 
     return false;

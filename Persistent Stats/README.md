@@ -1,6 +1,6 @@
 # Persistent Stats
 
-Suggested path: server\src\commands\internal
+Suggested path: `server\src\commands\internal`
 
 Installation: Drop the `cacheStats.js` file into the suggested path above, then (as admin) run: send({ cmd: 'reload' });
 
