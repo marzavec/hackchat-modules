@@ -10,6 +10,8 @@ All modules listed adhere to the drop-and-install module pattern, however some m
 
 `Channel Captcha` - This module adds a socket-level captcha to a channel, preventing malicious bots from automated entry.
 
+`Cards Against Humanity` - This module adds the game Cards Against Humanity into hack.chat. The default play room is 'chatAgainstHumanity', however it has been built with the intended purpose to allow users to create their own private games in other channels (currently not implemented).
+
 `Lock Room` - This channel prevents all unknown entry, when enabled on a channel only elevated users and clients using trips listed by `Auth Trip` will be allowed into the channel. Connections are shunted to a specialized channel, allowing mods to move a user out if necessary.
 
 `Lol Hacker` - To be honest, I was just fooling around with this. It allows a user to spew forth non-sense techno babble, just for laughs.
