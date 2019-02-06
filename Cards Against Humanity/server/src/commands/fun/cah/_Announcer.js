@@ -1,6 +1,44 @@
 // import support libs
 const stripIndents = require('common-tags').stripIndents;
 const Util = require('./_Util');
+const { table } = require('table');
+
+const tableConfig = {
+  columns: {
+    0: {
+      alignment: 'right',
+      width: 5
+    },
+    1: {
+      alignment: 'left',
+      width: 7
+    },
+    2: {
+      alignment: 'left',
+      width: 33
+    }
+  },
+  border: {
+    topBody: `─`,
+    topJoin: `┬`,
+    topLeft: `┌`,
+    topRight: `┐`,
+
+    bottomBody: `─`,
+    bottomJoin: `┴`,
+    bottomLeft: `└`,
+    bottomRight: `┘`,
+
+    bodyLeft: `│`,
+    bodyRight: `│`,
+    bodyJoin: `│`,
+
+    joinBody: `─`,
+    joinLeft: `├`,
+    joinRight: `┤`,
+    joinJoin: `┼`
+  }
+};
 
 // Array of errors / reasons a user's action has failed, used by this.informFailure();
 const FailureReasons = [
@@ -184,7 +222,8 @@ class Announcer {
       }
       ${name}\'s turn to pick!
 
-      ${card.text}${card.pick !== 1 ? ` ( PLAY ${card.pick} )` : ''}
+      -   ${card.text}${card.pick !== 1 ? ` ( PLAY ${card.pick} )` : ''}
+
     `);
   }
 
@@ -262,13 +301,13 @@ class Announcer {
   sendPoints(pointsArray) {
     pointsArray.sort( (p1, p2) => p1.points - p2.points ).reverse();
 
-    let pointsText = '';
+    let points = [ ['Rank:', 'Points:', 'Player:'] ];
     for (let i = 0, j = pointsArray.length; i < j; i++) {
-      pointsText += `#${i + 1}: ${pointsArray[i].name} - ${pointsArray[i].points}\n`;
+      points.push([ i + 1, pointsArray[i].points, pointsArray[i].name ]);
     }
 
     this.say(stripIndents`Points:
-      ${pointsText}`);
+      ${table(points, tableConfig)}`);
   }
 
   /**

@@ -1,5 +1,39 @@
 // import support libs
 const Util = require('./_Util');
+const { table } = require('table');
+
+const tableConfig = {
+  columns: {
+    0: {
+      alignment: 'right',
+      width: 7
+    },
+    1: {
+      alignment: 'left',
+      width: 70
+    }
+  },
+  border: {
+    topBody: `─`,
+    topJoin: `┬`,
+    topLeft: `┌`,
+    topRight: `┐`,
+
+    bottomBody: `─`,
+    bottomJoin: `┴`,
+    bottomLeft: `└`,
+    bottomRight: `┘`,
+
+    bodyLeft: `│`,
+    bodyRight: `│`,
+    bodyJoin: `│`,
+
+    joinBody: `─`,
+    joinLeft: `├`,
+    joinRight: `┤`,
+    joinJoin: `┼`
+  }
+};
 
 /**
  * Encapsulates player details, stats & current hand
@@ -17,6 +51,12 @@ class Player {
    * newGuy.fillHand(globalDeck);
    */
    constructor(playerName, playerSocket, announcer, options = {}) {
+     /**
+       * This is the players ID
+       * @type {number}
+       */
+     this.playerID = Math.floor(Math.random() * 10000);
+
      /**
        * This is the players name
        * @type {string}
@@ -77,12 +117,22 @@ class Player {
    }
 
   /**
+    * Returns the id of this player
+    * @type {number}
+    * @readonly
+    */
+  get id() {
+    return this.playerID;
+  }
+
+  /**
     * Returns the name of this player
     * @type {string}
     * @readonly
     */
   get name() {
-    return this.playerName;
+    return (`${this.playerSocket.nick}#${this.playerSocket.trip || 'null'}`) ||
+      this.playerName;
   }
 
   /**
@@ -113,13 +163,12 @@ class Player {
       return this.announcer.informFailure(this, 2); // fail because game not started
     }
 
-    let cards = '';
-
+    let cards = [ ['Card #:', 'Text:'] ];
     for (let i = 0, j = this.playerHand.length; i < j; i++) {
-      cards += `${i + 1}) ${this.playerHand[i]}\n`;
+      cards.push([ i + 1, this.playerHand[i] ]);
     }
 
-    return cards;
+    return table(cards, tableConfig);
   }
 
   /**

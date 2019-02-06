@@ -128,6 +128,10 @@ class GameEngine {
 
     this.announcer.newPlayer(playerName);
 
+    if (this.gameInProgress) {
+      newPlayer.fillHand(this.deck);
+    }
+
     return newPlayer;
   }
 
@@ -138,16 +142,31 @@ class GameEngine {
     * @returns {void}
     */
   removePlayer(player, playerSocket) {
-    console.log(this.players.length);
+    this.announcer.lostPlayer(player.name);
+
+    if (this.gameInProgress && this.currentPicker.id === player.id) {
+      this.announcer.pickFailure(this.currentPicker.name);
+
+      for (let i = 0, j = this.players.length; i < j; i++) {
+        if (!this.players[i].isPicking) {
+          if (this.players[i].addPoints(Math.floor(this.options.winPoints * .5))) {
+            this.gameOver(this.players[i]);
+            return;
+          }
+        }
+      }
+
+      this.finalizeRound();
+    }
+
     for (let i = 0, j = this.players.length; i < j; i++) {
-      if (this.players[i].name === player.name) {
+      if (this.players[i].id === player.id) {
         this.players.splice(i, 1);
+        break;
       }
     }
 
-    this.announcer.lostPlayer(player.name);
-
-    if (this.players.length < this.options.minPlayers) {
+    if (this.gameInProgress && this.players.length < this.options.minPlayers) {
       // not enough players to continue, end game
       this.players.sort( (p1, p2) => p1.points - p2.points ).reverse();
       this.announcer.failedGame();
@@ -238,7 +257,10 @@ class GameEngine {
   startPlayTimers() {
     this.timers.playWarn = setTimeout(
       () => {
-        this.announcer.playWarning(this.options.playtime * 0.5);
+        if (this.gameInProgress) {
+          this.announcer.playWarning(this.options.playtime * 0.5);
+        }
+
         this.timers.playWarn = null;
       },
       (this.options.playtime * 1000) * 0.5
@@ -276,7 +298,13 @@ class GameEngine {
   startPickTimers() {
     this.timers.pickWarn = setTimeout(
       () => {
-        this.announcer.pickWarning(this.options.picktime * 0.5, this.currentPicker.name);
+        if (this.gameInProgress) {
+          this.announcer.pickWarning(
+            this.options.picktime * 0.5,
+            this.currentPicker.name
+          );
+        }
+
         this.timers.pickWarn = null;
       },
       (this.options.picktime * 1000) * 0.5
@@ -315,6 +343,10 @@ class GameEngine {
     * @returns {void}
     */
   onActionFailure(playFailure) {
+    if (!this.gameInProgress) {
+      return;
+    }
+
     if (playFailure) {
       let shittyPlayers = [];
       for (let i = 0, j = this.players.length; i < j; i++) {
@@ -525,7 +557,7 @@ class GameEngine {
   reset() {
     this.clearPlayTimers();
     this.clearPickTimers();
-    
+
     for (let i = 0, j = this.players.length; i < j; i++) {
       this.players[i].socket.cah.observer = true;
     }
