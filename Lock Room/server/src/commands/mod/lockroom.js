@@ -20,6 +20,13 @@ exports.run = async (core, server, socket, data) => {
     return server._police.frisk(socket.remoteAddress, 10);
   }
 
+  if (core.locked[socket.channel]) {
+    server.reply({
+      cmd: 'info',
+      text: "Channel is already locked."
+    }, socket);
+    return;
+  }
   // apply lock flag to channel list
   core.locked[socket.channel] = true;
 

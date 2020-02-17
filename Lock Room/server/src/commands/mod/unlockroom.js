@@ -13,6 +13,14 @@ exports.run = async (core, server, socket, data) => {
     core.locked = [];
   }
 
+  if (!core.locked[socket.channel]) {
+    server.reply({
+      cmd: 'info',
+      text: 'Channel is already unlocked.'
+    }, socket);
+    return;
+  }
+
   core.locked[socket.channel] = false;
 
   server.broadcast({
