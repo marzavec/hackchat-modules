@@ -16,6 +16,14 @@ exports.run = async (core, server, socket, data) => {
     return server._police.frisk(socket.remoteAddress, 10);
   }
 
+  if (!core.captchas[socket.channel]) {
+    server.reply({
+      cmd: 'info',
+      text: 'Captcha is already disabled.'
+    }, socket);
+    return;
+  }
+
   core.captchas[socket.channel] = false;
 
   server.broadcast({
