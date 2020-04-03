@@ -2,55 +2,59 @@
   Description: Adds target trip to the privileged list in the config
 */
 
+import * as UAC from '../utility/UAC/_info';
+
 // module support functions
 const verifyTrip = (trip) => /^[a-zA-Z0-9+\/=]{1,6}$/.test(trip);
 
 // module constructor
-exports.init = (core) => {
+export async function init(core) {
   if (typeof core.config.authedtrips === 'undefined') {
     core.config.authedtrips = [];
   }
-};
+}
 
 // module main
-exports.run = async (core, server, socket, data) => {
+export async function run(core, server, socket, data) {
   // increase rate limit chance and ignore if not admin or mod
-  if (socket.uType === 'user') {
-    return server._police.frisk(socket.remoteAddress, 10);
+  if (!UAC.isModerator(socket.level)) {
+    return server.police.frisk(socket.address, 10);
   }
 
   if (typeof data.trip !== 'string') {
-    return;
+    return true;
   }
 
   if (!verifyTrip(data.trip)) {
-	  return;
+    return true;
   }
 
   if (core.config.authedtrips.indexOf(data.trip) === -1) {
-	  core.config.authedtrips.push(data.trip);
+    core.config.authedtrips.push(data.trip);
   }
 
-  let saveResult = core.managers.config.save();
+  const saveResult = core.configManager.save();
 
   if (!saveResult) {
     return server.reply({
       cmd: 'warn',
-      text: 'Failed to save config, check logs.'
+      text: 'Failed to save config, check logs.',
     }, socket);
   }
 
   server.broadcast({
     cmd: 'info',
-    text: `${socket.nick} [ ${socket.trip} ] added ${data.trip} to authorized trips`
-  }, { uType: 'mod' });
-};
+    text: `${socket.nick} [ ${socket.trip} ] added ${data.trip} to authorized trips`,
+  }, { level: UAC.isModerator });
+
+  return true;
+}
 
 // module meta
-exports.requiredData = ['trip'];
-exports.info = {
+export const requiredData = ['trip'];
+export const info = {
   name: 'authtrip',
   description: 'Allow trip through channel locks, captchas, etc',
   usage: `
-    API: { cmd: 'authtrip', trip: '<target trip>' }`
+    API: { cmd: 'authtrip', trip: '<target trip>' }`,
 };

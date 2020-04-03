@@ -2,37 +2,47 @@
   Description: Removes the calling sockets channel from the privileged room list
 */
 
+import * as UAC from '../utility/UAC/_info';
+
 // module main
-exports.run = async (core, server, socket, data) => {
+export async function run(core, server, socket, data) {
   // increase rate limit chance and ignore if not admin or mod
-  if (socket.uType === 'user') {
-    return server._police.frisk(socket.remoteAddress, 10);
+  if (!UAC.isModerator(socket.level)) {
+    return server.police.frisk(socket.address, 10);
   }
 
   if (typeof core.locked === 'undefined') {
     core.locked = [];
   }
 
-  if (!core.locked[socket.channel]) {
-    server.reply({
-      cmd: 'info',
-      text: 'Channel is already unlocked.'
-    }, socket);
-    return;
+  let { channel } = socket;
+  if (typeof data.channel !== 'undefined') {
+    channel = data.channel;
   }
 
-  core.locked[socket.channel] = false;
+  if (!core.locked[socket.channel]) {
+    return server.reply({
+      cmd: 'info',
+      text: 'Channel is not locked.',
+    }, socket);
+  }
+
+  core.locked[channel] = false;
 
   server.broadcast({
     cmd: 'info',
-    text: `Unlocked room: ${socket.channel}`
-  }, { uType: 'mod' });
-};
+    text: `Channel: ?${channel} unlocked by [${socket.trip}]${socket.nick}`,
+  }, { channel, level: UAC.isModerator });
+
+  console.log(`Channel: ?${channel} unlocked by [${socket.trip}]${socket.nick} in ${socket.channel}`);
+
+  return true;
+}
 
 // module meta
-exports.info = {
+export const info = {
   name: 'unlockroom',
-  description: 'Unlock the current channel you are in',
+  description: 'Unlock the current channel you are in or target channel as specified',
   usage: `
-    API: { cmd: 'unlockroom' }`
+    API: { cmd: 'unlockroom', channel: '<optional target channel>' }`,
 };
